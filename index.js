@@ -142,6 +142,10 @@ async function run() {
       //{ email: 'abul09@gmail.com', sort: '1' }
 
       console.log(req.query.email);
+
+      if (req.query.email != req.user.email) {
+        return res.status(403).send({ message: "forbidden user access" });
+      }
       console.log("user in the valid token::::", req.user);
       console.log("token token token---------->", req.cookies.token);
       let query = {};
