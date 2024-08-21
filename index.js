@@ -1,8 +1,7 @@
 const express = require("express");
 const cors = require("cors");
-const cookieParser = require('cookie-parser')
-const jwt = require('jsonwebtoken');
-
+const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -11,12 +10,14 @@ require("dotenv").config();
 
 //middleware
 // app.use(cors());
-app.use(cors({
-  origin:['http://localhost:5173'],
-  credentials:true
-}));
+app.use(
+  cors({
+    origin: ["http://localhost:5173"],
+    credentials: true,
+  })
+);
 app.use(express.json());
-app.use(cookieParser())
+app.use(cookieParser());
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
@@ -28,6 +29,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri =
   // "mongodb+srv://car_services:xQ5O5RYM5AWLna0L@cluster0.hfhifix.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
   // "mongodb+srv://process.env.DB_USER:process.env.DB_PASS@cluster0.hfhifix.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+
   `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.hfhifix.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -56,28 +58,33 @@ async function run() {
       .collection("booking_order");
 
     //auth related API-->JWT-->Json Web Token
-    app.post("/jwt",async(req,res)=>{
-      const user = req.body
-      console.log(user)
+    //60-5 Send token server to client and client to the server side
+    app.post("/jwt", async (req, res) => {
+      const user = req.body;
+      console.log(user);
+
       // jwt.sign({data: 'foobar'}, 'secret', { expiresIn: '1h' });
       // const token = jwt.sign(user, 'secret', { expiresIn: '1h' })
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
-      console.log(token)
+
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+      console.log(token);
       // res.send(user)
       // res.send(token)
-      res.cookie("token",token,{
-        httpOnly:true,
-        secure:false, 
-        //http://localhost:3000/
-        //http://localhost:5173/login-->not secure-->!https
-        sameSite:"none"  //port different
-      })
-      .send({success:true})
-    })
-
+      res
+        .cookie("token", token, {
+          httpOnly: true,
+          secure: false,
+          //http://localhost:3000/
+          //http://localhost:5173/login-->not secure-->!https
+          sameSite: "none", //port different
+        })
+        .send({ success: true });
+    });
 
     //services related API
-      //READ-->get all user
+    //READ-->get all user
     app.get("/getAllServices", async (req, res) => {
       const getAllServices = await carServicesCollection.find().toArray();
       console.log(getAllServices);
@@ -113,7 +120,7 @@ async function run() {
       //{ email: 'abul09@gmail.com', sort: '1' }
 
       console.log(req.query.email);
-      console.log("token token token",req.cookies.token)
+      console.log("token token token---------->", req.cookies.token);
       let query = {};
       if (req.query?.email) {
         query = { email: req.query.email };
