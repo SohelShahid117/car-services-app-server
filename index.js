@@ -41,6 +41,28 @@ const client = new MongoClient(uri, {
   },
 });
 
+//middleware
+const logger = async (req, res, next) => {
+  console.log("called:", req.hostname, req.originalUrl);
+  next();
+};
+
+const varifyToken = async (req, res, next) => {
+  const token = req.cookies?.token;
+  console.log("in middleware,token:", token);
+  if (!token) {
+    return res.status(401).send({ message: "u r not authorize" });
+  }
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: "u r unauthorized" });
+    }
+    console.log("vlue in the token-->", decoded);
+    req.user = decoded;
+    next();
+  });
+};
+
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
@@ -59,7 +81,7 @@ async function run() {
 
     //auth related API-->JWT-->Json Web Token
     //60-5 Send token server to client and client to the server side
-    app.post("/jwt", async (req, res) => {
+    app.post("/jwt", logger, async (req, res) => {
       const user = req.body;
       console.log(user);
 
@@ -85,7 +107,7 @@ async function run() {
 
     //services related API
     //READ-->get all user
-    app.get("/getAllServices", async (req, res) => {
+    app.get("/getAllServices", logger, async (req, res) => {
       const getAllServices = await carServicesCollection.find().toArray();
       console.log(getAllServices);
       res.send(getAllServices);
@@ -114,12 +136,13 @@ async function run() {
     });
 
     //READ
-    app.get("/allBookingsOrder", async (req, res) => {
+    app.get("/allBookingsOrder", logger, varifyToken, async (req, res) => {
       console.log(req.query);
       //http://localhost:3000/allBookingsOrder?email=abul09@gmail.com&sort=1
       //{ email: 'abul09@gmail.com', sort: '1' }
 
       console.log(req.query.email);
+      console.log("user in the valid token::::", req.user);
       console.log("token token token---------->", req.cookies.token);
       let query = {};
       if (req.query?.email) {
